@@ -22,6 +22,7 @@ check for cache hits without re-computing placeholder.get_vary_cache_on().
 import hashlib
 import time
 
+from django.utils.encoding import iri_to_uri
 from django.utils.timezone import now
 
 from cms.utils import get_cms_setting
@@ -98,13 +99,14 @@ def _get_placeholder_cache_key(placeholder, lang, site_id, request, soft=False):
     """
     prefix = get_cms_setting('CACHE_PREFIX')
     version, vary_on_list = _get_placeholder_cache_version(placeholder, lang, site_id)
-    main_key = '{prefix}|render_placeholder|id:{id}|lang:{lang}|site:{site}|tz:{tz}|v:{version}'.format(
+    main_key = '{prefix}|render_placeholder|id:{id}|lang:{lang}|site:{site}|tz:{tz}|v:{version}|url:{url}'.format(
         prefix=prefix,
         id=placeholder.pk,
         lang=lang,
         site=site_id,
         tz=get_timezone_name(),
         version=version,
+        url=hashlib.sha1(iri_to_uri(request.get_full_path()).encode('utf-8')).hexdigest()
     )
 
     if not soft:
