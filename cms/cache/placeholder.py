@@ -23,6 +23,7 @@ import hashlib
 import time
 
 from django.utils.timezone import now
+from django.utils.encoding import iri_to_uri
 
 from cms.utils.conf import get_cms_setting
 from cms.utils.helpers import get_header_name, get_timezone_name
@@ -98,13 +99,14 @@ def _get_placeholder_cache_key(placeholder, lang, site_id, request, soft=False):
     """
     prefix = get_cms_setting('CACHE_PREFIX')
     version, vary_on_list = _get_placeholder_cache_version(placeholder, lang, site_id)
-    main_key = '{prefix}|render_placeholder|id:{id}|lang:{lang}|site:{site}|tz:{tz}|v:{version}'.format(
+    main_key = '{prefix}|render_placeholder|id:{id}|lang:{lang}|site:{site}|tz:{tz}|v:{version}|url:{url}'.format(
         prefix=prefix,
         id=placeholder.pk,
         lang=lang,
         site=site_id,
         tz=get_timezone_name(),
         version=version,
+        url=hashlib.sha1(iri_to_uri(request.get_full_path()).encode('utf-8')).hexdigest()
     )
 
     if not soft:
